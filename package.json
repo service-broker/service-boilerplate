@@ -1,9 +1,22 @@
 {
+  "name": "service-boilerplate",
+  "version": "1.0.0",
+  "description": "Boilerplate for service providers and clients.",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "test": "jest"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ken107/service-boilerplate.git"
+  },
+  "author": "Hai Phan <hai.phan@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ken107/service-boilerplate/issues"
+  },
+  "homepage": "https://github.com/ken107/service-boilerplate#readme",
   "devDependencies": {
     "@types/dotenv": "^4.0.3",
     "@types/jest": "^23.3.1",
