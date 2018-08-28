@@ -1,7 +1,7 @@
 This is the boilerplate code for service providers and clients to communicate with the [service broker](https://github.com/ken107/service-broker).
 
 ### Configuration
-The `serviceBrokerAddress` property in `config.ts` specifies the broker's websocket URL.
+The `serviceBrokerUrl` property in `config.ts` specifies the broker's websocket URL.
 
 ### Service Broker API
 These API methods are exposed by the `common/service-broker` module.

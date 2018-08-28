@@ -1,8 +1,8 @@
 declare const _default: {
-    serviceBrokerAddress: string;
+    serviceBrokerUrl: string;
     service: {
         name: string;
-        capabilities: any;
+        capabilities: string[];
         priority: number;
     };
 };

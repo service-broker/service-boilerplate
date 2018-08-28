@@ -30,7 +30,7 @@ type Connection = WebSocket & {isClosed: boolean};
 
 
 
-if (!config.serviceBrokerAddress) throw new Error("Missing serviceBrokerAddress");
+if (!config.serviceBrokerUrl) throw new Error("Missing serviceBrokerUrl");
 
 const providers: {[key: string]: Provider} = {};
 const pending: {[key: string]: PendingResponse} = {};
@@ -41,7 +41,7 @@ const getConnection = new Iterator(connect).throttle(15000).keepWhile(con => con
 
 async function connect(): Promise<Connection> {
   try {
-    const ws = new WebSocket(config.serviceBrokerAddress) as Connection;
+    const ws = new WebSocket(config.serviceBrokerUrl) as Connection;
     await new Promise(function(fulfill, reject) {
       ws.once("error", reject);
       ws.once("open", () => {

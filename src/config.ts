@@ -3,12 +3,12 @@ import * as dotenv from "dotenv"
 dotenv.config();
 
 export default {
-  serviceBrokerAddress: process.env.SERVICE_BROKER_ADDRESS,
+  serviceBrokerUrl: process.env.SERVICE_BROKER_URL,
   
   // the service provided by this module
   service: {
     name: "echo",
-    capabilities: null,
+    capabilities: <string[]> null,
     priority: 100
   }
 }

@@ -6,15 +6,15 @@ const pTimeout = require("p-timeout");
 const config_1 = require("../config");
 const iterator_1 = require("./iterator");
 const logger_1 = require("./logger");
-if (!config_1.default.serviceBrokerAddress)
-    throw new Error("Missing serviceBrokerAddress");
+if (!config_1.default.serviceBrokerUrl)
+    throw new Error("Missing serviceBrokerUrl");
 const providers = {};
 const pending = {};
 let pendingIdGen = 0;
 const getConnection = new iterator_1.default(connect).throttle(15000).keepWhile(con => con && !con.isClosed).noRace().next;
 async function connect() {
     try {
-        const ws = new WebSocket(config_1.default.serviceBrokerAddress);
+        const ws = new WebSocket(config_1.default.serviceBrokerUrl);
         await new Promise(function (fulfill, reject) {
             ws.once("error", reject);
             ws.once("open", () => {
