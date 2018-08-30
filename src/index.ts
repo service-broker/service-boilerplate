@@ -1,7 +1,7 @@
 import { advertise, Message } from "./common/service-broker"
 import config from "./config"
 
-advertise(config.service.name, config.service.capabilities, config.service.priority, onRequest);
+advertise(config.service, onRequest);
 
 
 function onRequest(req: Message): Message|Promise<Message> {

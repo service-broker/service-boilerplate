@@ -9,9 +9,7 @@ These API methods are exposed by the `common/service-broker` module.
 #### Advertise
 ```typescript
 function advertise(
-  serviceName: string,
-  capabilities: string[],
-  priority: number,
+  service: {name: string, capabilities?: string[], priority?: number},
   handler: (req: Message) => Message|Promise<Message>
 ): void
 ```
@@ -20,8 +18,7 @@ A service provider calls this method to advertise to the broker the service(s) i
 #### Request
 ```typescript
 function request(
-  serviceName: string,
-  capabilities: string[],
+  service: {name: string, capabilities?: string[]},
   req: Message,
   timeout?: number
 ): Promise<Message>
@@ -46,3 +43,33 @@ Returns the service broker's status, which includes the list of services and ser
 function shutdown()
 ```
 Close the connection to the service broker.
+
+#### SetHandler
+```typescript
+function setHandler(
+  serviceName: string,
+  handler: (req: Message) => Message|Promise<Message>
+): void
+```
+This installs a handler for a particular service without advertising the it to the service broker.  This works for the case where the client knows the provider's endpointId and can send the request to it directly (see RequestTo and NotifyTo).
+
+#### RequestTo
+```typescript
+function requestTo(
+  endpointId: string,
+  serviceName: string,
+  req: Message,
+  timeout?: number
+): Promise<Message>
+```
+Send a request directly to an endpoint.
+
+#### NotifyTo
+```typescript
+function notifyTo(
+  endpointId: string,
+  serviceName: string,
+  msg: Message
+): void
+```
+Send a notification directly to an endpoint.

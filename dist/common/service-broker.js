@@ -187,20 +187,26 @@ function packetizer(size) {
         }
     });
 }
-async function advertise(name, capabilities, priority, handler) {
-    if (providers[name])
-        throw new Error(`${name} provider already exists`);
-    providers[name] = {
-        service: { name, capabilities, priority },
-        handler
-    };
+async function advertise(service, handler) {
+    if (providers[service.name])
+        throw new Error(`${service.name} provider already exists`);
+    providers[service.name] = { service, handler };
     await send({
         type: "SbAdvertiseRequest",
         services: Object.values(providers).map(x => x.service)
     });
 }
 exports.advertise = advertise;
-async function request(name, capabilities, req, timeout) {
+function setHandler(serviceName, handler) {
+    if (providers[serviceName])
+        throw new Error(`${serviceName} provider already exists`);
+    providers[serviceName] = {
+        service: { name: serviceName },
+        handler
+    };
+}
+exports.setHandler = setHandler;
+async function request(service, req, timeout) {
     if (!req)
         req = {};
     const id = String(++pendingIdGen);
@@ -208,12 +214,38 @@ async function request(name, capabilities, req, timeout) {
     const header = {
         id,
         type: "ServiceRequest",
-        service: { name, capabilities },
+        service
     };
     await send(Object.assign({}, req.header, header), req.payload);
     return promise;
 }
 exports.request = request;
+async function requestTo(endpointId, serviceName, req, timeout) {
+    if (!req)
+        req = {};
+    const id = String(++pendingIdGen);
+    const promise = pendingResponse(id, timeout);
+    const header = {
+        to: endpointId,
+        id,
+        type: "ServiceRequest",
+        service: { name: serviceName }
+    };
+    await send(Object.assign({}, req.header, header), req.payload);
+    return promise;
+}
+exports.requestTo = requestTo;
+async function notifyTo(endpointId, serviceName, msg) {
+    if (!msg)
+        msg = {};
+    const header = {
+        to: endpointId,
+        type: "ServiceRequest",
+        service: { name: serviceName }
+    };
+    await send(Object.assign({}, msg.header, header), msg.payload);
+}
+exports.notifyTo = notifyTo;
 function pendingResponse(id, timeout) {
     const promise = new Promise(function (fulfill, reject) {
         pending[id] = {
@@ -253,7 +285,7 @@ async function publish(topic, text) {
 }
 exports.publish = publish;
 async function subscribe(topic, handler) {
-    await advertise("#" + topic, null, null, (msg) => {
+    await advertise({ name: "#" + topic }, (msg) => {
         handler(msg.payload);
         return null;
     });

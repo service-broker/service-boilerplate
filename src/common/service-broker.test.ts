@@ -16,7 +16,7 @@ test("pub/sub", async () => {
 
 test("request/response", async () => {
   const queue = new Queue();
-  sb.advertise("test-tts", ["v1","v2"], 1, msg => {
+  sb.advertise({name:"test-tts", capabilities:["v1","v2"], priority:1}, msg => {
     queue.push(msg);
     return {
       header: {result:1},
@@ -24,7 +24,7 @@ test("request/response", async () => {
     };
   });
 
-  let promise = sb.request("test-tts", ["v1"], {
+  let promise = sb.request({name:"test-tts", capabilities:["v1"]}, {
     header: {lang:"vi"},
     payload: "this is request payload"
   });
@@ -41,7 +41,8 @@ test("request/response", async () => {
     },
     payload: "this is request payload"
   });
-  expect(await promise).toEqual({
+  let res = await promise;
+  expect(res).toEqual({
     header: {
       from: expect.any(String),
       to: expect.any(String),
@@ -52,8 +53,58 @@ test("request/response", async () => {
     payload: Buffer.from("this is response payload")
   });
 
+  //test setHandler, requestTo, notifyTo
+  const endpointId = res.header.from;
+  sb.setHandler("test-direct", msg => {
+    queue.push(msg);
+    return {
+      header: {output: "crap"},
+      payload: Buffer.from("Direct response payload")
+    };
+  });
+  promise = sb.requestTo(endpointId, "test-direct", {
+    header: {value: 100},
+    payload: "Direct request payload"
+  });
+  expect(await queue.shift()).toEqual({
+    header: {
+      to: endpointId,
+      from: expect.any(String),
+      id: expect.any(String),
+      type: "ServiceRequest",
+      service: {name: "test-direct"},
+      value: 100
+    },
+    payload: "Direct request payload"
+  });
+  expect(await promise).toEqual({
+    header: {
+      from: expect.any(String),
+      to: expect.any(String),
+      id: expect.any(String),
+      type: "ServiceResponse",
+      output: "crap"
+    },
+    payload: Buffer.from("Direct response payload")
+  });
+  sb.notifyTo(endpointId, "test-direct", {
+    header: {value: 200},
+    payload: Buffer.from("Direct notify payload")
+  });
+  expect(await queue.shift()).toEqual({
+    header: {
+      to: endpointId,
+      from: expect.any(String),
+      type: "ServiceRequest",
+      service: {name: "test-direct"},
+      value: 200
+    },
+    payload: Buffer.from("Direct notify payload")
+  });
+
+  //test no-provider
   try {
-    await sb.request("test-tts", ["v3"], {
+    await sb.request({name:"test-tts", capabilities:["v3"]}, {
       header: {lang:"en"},
       payload: "this is request payload"
     });

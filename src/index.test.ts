@@ -10,5 +10,5 @@ afterAll(() => {
 
 
 test("echo service", async () => {
-  await expect(request("echo", null, {payload: "hello, world!"})).resolves.toHaveProperty("payload", "hello, world!");
+  await expect(request({name: "echo"}, {payload: "hello, world!"})).resolves.toHaveProperty("payload", "hello, world!");
 })

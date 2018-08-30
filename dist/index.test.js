@@ -8,5 +8,5 @@ afterAll(() => {
     return service_broker_1.shutdown();
 });
 test("echo service", async () => {
-    await expect(service_broker_1.request("echo", null, { payload: "hello, world!" })).resolves.toHaveProperty("payload", "hello, world!");
+    await expect(service_broker_1.request({ name: "echo" }, { payload: "hello, world!" })).resolves.toHaveProperty("payload", "hello, world!");
 });
