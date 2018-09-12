@@ -34,6 +34,18 @@ async function connect() {
             type: "SbAdvertiseRequest",
             services: Object.values(providers).map(x => x.service)
         }));
+        if (config_1.default.siteName && config_1.default.serviceName) {
+            ws.send(JSON.stringify({
+                type: "ServiceRequest",
+                service: { name: "service-manager" },
+                method: "setServiceStatus",
+                args: {
+                    siteName: config_1.default.siteName,
+                    serviceName: config_1.default.serviceName,
+                    pid: process.pid
+                }
+            }));
+        }
         return ws;
     }
     catch (err) {
