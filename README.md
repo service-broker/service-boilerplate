@@ -44,9 +44,9 @@ function shutdown()
 ```
 Close the connection to the service broker.
 
-#### SetHandler
+#### SetServiceHandler
 ```typescript
-function setHandler(
+function setServiceHandler(
   serviceName: string,
   handler: (req: Message) => Message|Promise<Message>
 ): void

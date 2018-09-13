@@ -53,9 +53,9 @@ test("request/response", async () => {
     payload: Buffer.from("this is response payload")
   });
 
-  //test setHandler, requestTo, notifyTo
+  //test setServiceHandler, requestTo, notifyTo
   const endpointId = res.header.from;
-  sb.setHandler("test-direct", msg => {
+  sb.setServiceHandler("test-direct", msg => {
     queue.push(msg);
     return {
       header: {output: "crap"},

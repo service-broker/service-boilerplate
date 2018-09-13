@@ -12,6 +12,8 @@ const providers = {};
 const pending = {};
 let pendingIdGen = 0;
 const getConnection = new iterator_1.default(connect).throttle(15000).keepWhile(con => con && !con.isClosed).noRace().next;
+const shutdownHandlers = [];
+let shutdownFlag = false;
 async function connect() {
     try {
         const ws = new WebSocket(config_1.default.serviceBrokerUrl);
@@ -26,9 +28,11 @@ async function connect() {
         ws.on("message", onMessage);
         ws.on("error", logger_1.default.error);
         ws.once("close", function (code, reason) {
-            logger_1.default.error("Service broker connection lost,", code, reason || "");
             ws.isClosed = true;
-            getConnection();
+            if (!shutdownFlag) {
+                logger_1.default.error("Service broker connection lost,", code, reason || "");
+                getConnection();
+            }
         });
         ws.send(JSON.stringify({
             type: "SbAdvertiseRequest",
@@ -67,7 +71,9 @@ function onMessage(data) {
         logger_1.default.error(err.message);
         return;
     }
-    if (msg.header.type == "ServiceRequest")
+    if (msg.header.type == "ShutdownRequest")
+        onShutdownRequest(msg);
+    else if (msg.header.type == "ServiceRequest")
         onServiceRequest(msg);
     else if (msg.header.type == "ServiceResponse")
         onServiceResponse(msg);
@@ -88,7 +94,7 @@ async function onServiceRequest(msg) {
                     id: msg.header.id,
                     type: "ServiceResponse"
                 };
-                send(Object.assign({}, res.header, header), res.payload);
+                await send(Object.assign({}, res.header, header), res.payload);
             }
         }
         else
@@ -96,7 +102,7 @@ async function onServiceRequest(msg) {
     }
     catch (err) {
         if (msg.header.id) {
-            send({
+            await send({
                 to: msg.header.from,
                 id: msg.header.id,
                 type: "ServiceResponse",
@@ -209,7 +215,7 @@ async function advertise(service, handler) {
     });
 }
 exports.advertise = advertise;
-function setHandler(serviceName, handler) {
+function setServiceHandler(serviceName, handler) {
     if (providers[serviceName])
         throw new Error(`${serviceName} provider already exists`);
     providers[serviceName] = {
@@ -217,7 +223,7 @@ function setHandler(serviceName, handler) {
         handler
     };
 }
-exports.setHandler = setHandler;
+exports.setServiceHandler = setServiceHandler;
 async function request(service, req, timeout) {
     if (!req)
         req = {};
@@ -314,7 +320,40 @@ async function status() {
 }
 exports.status = status;
 async function shutdown() {
+    shutdownFlag = true;
     const ws = await getConnection();
     ws.close();
 }
 exports.shutdown = shutdown;
+function addShutdownHandler(handler) {
+    shutdownHandlers.push(handler);
+}
+exports.addShutdownHandler = addShutdownHandler;
+async function onShutdownRequest(req) {
+    try {
+        if (!shutdownHandlers.length)
+            throw new Error("Service doesn't handle shutdown request");
+        for (const handler of shutdownHandlers)
+            await handler();
+        if (req.header.id) {
+            await send({
+                to: req.header.from,
+                id: req.header.id,
+                type: "ShutdownResponse"
+            });
+        }
+        await shutdown();
+    }
+    catch (err) {
+        if (req.header.id) {
+            await send({
+                to: req.header.from,
+                id: req.header.id,
+                type: "ShutdownResponse",
+                error: err.message
+            });
+        }
+        else
+            logger_1.default.error(err.message, req.header);
+    }
+}

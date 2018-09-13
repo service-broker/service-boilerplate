@@ -1,7 +1,9 @@
-import { advertise, Message } from "./common/service-broker"
+import { advertise, Message, addShutdownHandler } from "./common/service-broker"
+import logger from "./common/logger"
 import config from "./config"
 
 advertise(config.service, onRequest);
+addShutdownHandler(onShutdown);
 
 
 function onRequest(req: Message): Message|Promise<Message> {
@@ -11,4 +13,9 @@ function onRequest(req: Message): Message|Promise<Message> {
     },
     payload: req.payload
   }
+}
+
+function onShutdown(): Promise<void> {
+  logger.info("Shutdown request received");
+  return Promise.resolve();
 }

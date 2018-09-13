@@ -36,6 +36,8 @@ const providers: {[key: string]: Provider} = {};
 const pending: {[key: string]: PendingResponse} = {};
 let pendingIdGen = 0;
 const getConnection = new Iterator(connect).throttle(15000).keepWhile(con => con && !con.isClosed).noRace().next;
+const shutdownHandlers: Array<() => Promise<void>> = [];
+let shutdownFlag: boolean = false;
 
 
 
@@ -53,9 +55,11 @@ async function connect(): Promise<Connection> {
     ws.on("message", onMessage);
     ws.on("error", logger.error);
     ws.once("close", function(code, reason) {
-      logger.error("Service broker connection lost,", code, reason||"");
       ws.isClosed = true;
-      getConnection();
+      if (!shutdownFlag) {
+        logger.error("Service broker connection lost,", code, reason||"");
+        getConnection();
+      }
     });
     ws.send(JSON.stringify({
       type: "SbAdvertiseRequest",
@@ -92,7 +96,8 @@ function onMessage(data: string|Buffer) {
     logger.error(err.message);
     return;
   }
-  if (msg.header.type == "ServiceRequest") onServiceRequest(msg);
+  if (msg.header.type == "ShutdownRequest") onShutdownRequest(msg);
+  else if (msg.header.type == "ServiceRequest") onServiceRequest(msg);
   else if (msg.header.type == "ServiceResponse") onServiceResponse(msg);
   else if (msg.header.type == "SbStatusResponse") onServiceResponse(msg);
   else if (msg.header.error) onServiceResponse(msg);
@@ -109,14 +114,14 @@ async function onServiceRequest(msg: Message) {
           id: msg.header.id,
           type: "ServiceResponse"
         };
-        send(Object.assign({}, res.header, header), res.payload);
+        await send(Object.assign({}, res.header, header), res.payload);
       }
     }
     else throw new Error("No provider for service " + msg.header.service.name);
   }
   catch (err) {
     if (msg.header.id) {
-      send({
+      await send({
         to: msg.header.from,
         id: msg.header.id,
         type: "ServiceResponse",
@@ -230,7 +235,7 @@ export async function advertise(service: {name: string, capabilities?: string[],
   });
 }
 
-export function setHandler(serviceName: string, handler: (msg: Message) => Message|Promise<Message>) {
+export function setServiceHandler(serviceName: string, handler: (msg: Message) => Message|Promise<Message>) {
   if (providers[serviceName]) throw new Error(`${serviceName} provider already exists`);
   providers[serviceName] = {
     service: {name: serviceName},
@@ -326,6 +331,7 @@ export async function subscribe(topic: string, handler: (text: string) => void) 
 
 
 
+
 export async function status() {
   const id = String(++pendingIdGen);
   const promise = pendingResponse(id);
@@ -337,6 +343,40 @@ export async function status() {
 }
 
 export async function shutdown() {
+  shutdownFlag = true;
   const ws = await getConnection();
   ws.close();
+}
+
+
+
+
+export function addShutdownHandler(handler: () => Promise<void>) {
+  shutdownHandlers.push(handler);
+}
+
+async function onShutdownRequest(req: Message) {
+  try {
+    if (!shutdownHandlers.length) throw new Error("Service doesn't handle shutdown request");
+    for (const handler of shutdownHandlers) await handler();
+    if (req.header.id) {
+      await send({
+        to: req.header.from,
+        id: req.header.id,
+        type: "ShutdownResponse"
+      });
+    }
+    await shutdown();
+  }
+  catch (err) {
+    if (req.header.id) {
+      await send({
+        to: req.header.from,
+        id: req.header.id,
+        type: "ShutdownResponse",
+        error: err.message
+      });
+    }
+    else logger.error(err.message, req.header);
+  }
 }

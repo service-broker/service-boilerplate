@@ -11,7 +11,7 @@ export declare function advertise(service: {
     capabilities?: string[];
     priority?: number;
 }, handler: (msg: Message) => Message | Promise<Message>): Promise<void>;
-export declare function setHandler(serviceName: string, handler: (msg: Message) => Message | Promise<Message>): void;
+export declare function setServiceHandler(serviceName: string, handler: (msg: Message) => Message | Promise<Message>): void;
 export declare function request(service: {
     name: string;
     capabilities?: string[];
@@ -22,3 +22,4 @@ export declare function publish(topic: string, text: string): Promise<void>;
 export declare function subscribe(topic: string, handler: (text: string) => void): Promise<void>;
 export declare function status(): Promise<any>;
 export declare function shutdown(): Promise<void>;
+export declare function addShutdownHandler(handler: () => Promise<void>): void;
