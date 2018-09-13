@@ -12,7 +12,6 @@ const providers = {};
 const pending = {};
 let pendingIdGen = 0;
 const getConnection = new iterator_1.default(connect).throttle(15000).keepWhile(con => con && !con.isClosed).noRace().next;
-const shutdownHandlers = [];
 let shutdownFlag = false;
 async function connect() {
     try {
@@ -38,18 +37,6 @@ async function connect() {
             type: "SbAdvertiseRequest",
             services: Object.values(providers).map(x => x.service)
         }));
-        if (config_1.default.siteName && config_1.default.serviceName) {
-            ws.send(JSON.stringify({
-                type: "ServiceRequest",
-                service: { name: "service-manager" },
-                method: "setServiceStatus",
-                args: {
-                    siteName: config_1.default.siteName,
-                    serviceName: config_1.default.serviceName,
-                    pid: process.pid
-                }
-            }));
-        }
         return ws;
     }
     catch (err) {
@@ -71,9 +58,7 @@ function onMessage(data) {
         logger_1.default.error(err.message);
         return;
     }
-    if (msg.header.type == "ShutdownRequest")
-        onShutdownRequest(msg);
-    else if (msg.header.type == "ServiceRequest")
+    if (msg.header.type == "ServiceRequest")
         onServiceRequest(msg);
     else if (msg.header.type == "ServiceResponse")
         onServiceResponse(msg);
@@ -238,6 +223,16 @@ async function request(service, req, timeout) {
     return promise;
 }
 exports.request = request;
+async function notify(service, msg) {
+    if (!msg)
+        msg = {};
+    const header = {
+        type: "ServiceRequest",
+        service
+    };
+    await send(Object.assign({}, msg.header, header), msg.payload);
+}
+exports.notify = notify;
 async function requestTo(endpointId, serviceName, req, timeout) {
     if (!req)
         req = {};
@@ -325,35 +320,3 @@ async function shutdown() {
     ws.close();
 }
 exports.shutdown = shutdown;
-function addShutdownHandler(handler) {
-    shutdownHandlers.push(handler);
-}
-exports.addShutdownHandler = addShutdownHandler;
-async function onShutdownRequest(req) {
-    try {
-        if (!shutdownHandlers.length)
-            throw new Error("Service doesn't handle shutdown request");
-        for (const handler of shutdownHandlers)
-            await handler();
-        if (req.header.id) {
-            await send({
-                to: req.header.from,
-                id: req.header.id,
-                type: "ShutdownResponse"
-            });
-        }
-        await shutdown();
-    }
-    catch (err) {
-        if (req.header.id) {
-            await send({
-                to: req.header.from,
-                id: req.header.id,
-                type: "ShutdownResponse",
-                error: err.message
-            });
-        }
-        else
-            logger_1.default.error(err.message, req.header);
-    }
-}

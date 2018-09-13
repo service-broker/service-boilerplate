@@ -1,4 +1,5 @@
-import { advertise, Message, addShutdownHandler } from "./common/service-broker"
+import { advertise, Message } from "./common/service-broker"
+import { addShutdownHandler } from "./common/service-manager"
 import logger from "./common/logger"
 import config from "./config"
 

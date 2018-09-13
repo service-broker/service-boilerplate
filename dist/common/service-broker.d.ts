@@ -16,10 +16,13 @@ export declare function request(service: {
     name: string;
     capabilities?: string[];
 }, req: Message, timeout?: number): Promise<Message>;
+export declare function notify(service: {
+    name: string;
+    capabilities?: string[];
+}, msg: Message): Promise<void>;
 export declare function requestTo(endpointId: string, serviceName: string, req: Message, timeout?: number): Promise<Message>;
 export declare function notifyTo(endpointId: string, serviceName: string, msg: Message): Promise<void>;
 export declare function publish(topic: string, text: string): Promise<void>;
 export declare function subscribe(topic: string, handler: (text: string) => void): Promise<void>;
 export declare function status(): Promise<any>;
 export declare function shutdown(): Promise<void>;
-export declare function addShutdownHandler(handler: () => Promise<void>): void;

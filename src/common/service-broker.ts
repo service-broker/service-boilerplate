@@ -36,7 +36,6 @@ const providers: {[key: string]: Provider} = {};
 const pending: {[key: string]: PendingResponse} = {};
 let pendingIdGen = 0;
 const getConnection = new Iterator(connect).throttle(15000).keepWhile(con => con && !con.isClosed).noRace().next;
-const shutdownHandlers: Array<() => Promise<void>> = [];
 let shutdownFlag: boolean = false;
 
 
@@ -65,18 +64,6 @@ async function connect(): Promise<Connection> {
       type: "SbAdvertiseRequest",
       services: Object.values(providers).map(x => x.service)
     }));
-    if (config.siteName && config.serviceName) {
-      ws.send(JSON.stringify({
-        type: "ServiceRequest",
-        service: {name: "service-manager"},
-        method: "setServiceStatus",
-        args: {
-          siteName: config.siteName,
-          serviceName: config.serviceName,
-          pid: process.pid
-        }
-      }));
-    }
     return ws;
   }
   catch (err) {
@@ -96,8 +83,7 @@ function onMessage(data: string|Buffer) {
     logger.error(err.message);
     return;
   }
-  if (msg.header.type == "ShutdownRequest") onShutdownRequest(msg);
-  else if (msg.header.type == "ServiceRequest") onServiceRequest(msg);
+  if (msg.header.type == "ServiceRequest") onServiceRequest(msg);
   else if (msg.header.type == "ServiceResponse") onServiceResponse(msg);
   else if (msg.header.type == "SbStatusResponse") onServiceResponse(msg);
   else if (msg.header.error) onServiceResponse(msg);
@@ -258,6 +244,15 @@ export async function request(service: {name: string, capabilities?: string[]}, 
   return promise;
 }
 
+export async function notify(service: {name: string, capabilities?: string[]}, msg: Message): Promise<void> {
+  if (!msg) msg = {};
+  const header = {
+    type: "ServiceRequest",
+    service
+  };
+  await send(Object.assign({}, msg.header, header), msg.payload);
+}
+
 export async function requestTo(endpointId: string, serviceName: string, req: Message, timeout?: number): Promise<Message> {
   if (!req) req = {};
   const id = String(++pendingIdGen);
@@ -346,37 +341,4 @@ export async function shutdown() {
   shutdownFlag = true;
   const ws = await getConnection();
   ws.close();
-}
-
-
-
-
-export function addShutdownHandler(handler: () => Promise<void>) {
-  shutdownHandlers.push(handler);
-}
-
-async function onShutdownRequest(req: Message) {
-  try {
-    if (!shutdownHandlers.length) throw new Error("Service doesn't handle shutdown request");
-    for (const handler of shutdownHandlers) await handler();
-    if (req.header.id) {
-      await send({
-        to: req.header.from,
-        id: req.header.id,
-        type: "ShutdownResponse"
-      });
-    }
-    await shutdown();
-  }
-  catch (err) {
-    if (req.header.id) {
-      await send({
-        to: req.header.from,
-        id: req.header.id,
-        type: "ShutdownResponse",
-        error: err.message
-      });
-    }
-    else logger.error(err.message, req.header);
-  }
 }
