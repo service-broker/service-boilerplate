@@ -3,10 +3,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const sb = require("./service-broker");
 const logger_1 = require("./logger");
 const config_1 = require("../config");
+let checkInTimer;
 const shutdownHandlers = [];
 sb.setServiceHandler("service-manager-client", onRequest);
-if (config_1.default.siteName && config_1.default.serviceName)
-    setInterval(checkIn, 30 * 1000);
+if (config_1.default.siteName && config_1.default.serviceName) {
+    checkIn();
+    checkInTimer = setInterval(checkIn, 30 * 1000);
+}
 function onRequest(req) {
     if (req.header.method == "shutdown")
         return shutdown(req);
@@ -18,6 +21,7 @@ async function shutdown(req) {
         throw new Error("pid incorrect");
     for (const handler of shutdownHandlers)
         await handler();
+    clearInterval(checkInTimer);
     setTimeout(sb.shutdown, 1000);
     return {};
 }
