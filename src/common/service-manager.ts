@@ -2,10 +2,14 @@ import * as sb from "./service-broker"
 import logger from "./logger"
 import config from "../config"
 
+let checkInTimer: NodeJS.Timer;
 const shutdownHandlers: Array<() => Promise<void>> = [];
 
 sb.setServiceHandler("service-manager-client", onRequest);
-if (config.siteName && config.serviceName) setInterval(checkIn, 30*1000);
+if (config.siteName && config.serviceName) {
+  checkIn();
+  checkInTimer = setInterval(checkIn, 30*1000);
+}
 
 
 
@@ -17,6 +21,7 @@ function onRequest(req: sb.Message): Promise<sb.Message> {
 async function shutdown(req: sb.Message): Promise<sb.Message> {
   if (req.header.pid != process.pid) throw new Error("pid incorrect");
   for (const handler of shutdownHandlers) await handler();
+  clearInterval(checkInTimer);
   setTimeout(sb.shutdown, 1000);
   return {};
 }
