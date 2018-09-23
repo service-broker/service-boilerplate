@@ -13,6 +13,14 @@ const pending = {};
 let pendingIdGen = 0;
 const getConnection = new iterator_1.default(connect).throttle(15000).keepWhile(con => con && !con.isClosed).noRace().next;
 let shutdownFlag = false;
+const reservedFields = {
+    from: undefined,
+    to: undefined,
+    id: undefined,
+    type: undefined,
+    error: undefined,
+    part: undefined
+};
 async function connect() {
     try {
         const ws = new WebSocket(config_1.default.serviceBrokerUrl);
@@ -79,7 +87,7 @@ async function onServiceRequest(msg) {
                     id: msg.header.id,
                     type: "ServiceResponse"
                 };
-                await send(Object.assign({}, res.header, header), res.payload);
+                await send(Object.assign({}, res.header, reservedFields, header), res.payload);
             }
         }
         else
@@ -234,7 +242,7 @@ async function request(service, req, timeout) {
         type: "ServiceRequest",
         service
     };
-    await send(Object.assign({}, req.header, header), req.payload);
+    await send(Object.assign({}, req.header, reservedFields, header), req.payload);
     return promise;
 }
 exports.request = request;
@@ -245,7 +253,7 @@ async function notify(service, msg) {
         type: "ServiceRequest",
         service
     };
-    await send(Object.assign({}, msg.header, header), msg.payload);
+    await send(Object.assign({}, msg.header, reservedFields, header), msg.payload);
 }
 exports.notify = notify;
 async function requestTo(endpointId, serviceName, req, timeout) {
@@ -259,7 +267,7 @@ async function requestTo(endpointId, serviceName, req, timeout) {
         type: "ServiceRequest",
         service: { name: serviceName }
     };
-    await send(Object.assign({}, req.header, header), req.payload);
+    await send(Object.assign({}, req.header, reservedFields, header), req.payload);
     return promise;
 }
 exports.requestTo = requestTo;
@@ -271,7 +279,7 @@ async function notifyTo(endpointId, serviceName, msg) {
         type: "ServiceRequest",
         service: { name: serviceName }
     };
-    await send(Object.assign({}, msg.header, header), msg.payload);
+    await send(Object.assign({}, msg.header, reservedFields, header), msg.payload);
 }
 exports.notifyTo = notifyTo;
 function pendingResponse(id, timeout) {
