@@ -39,6 +39,15 @@ let pendingIdGen = 0;
 const getConnection = new Iterator(connect).throttle(15000).keepWhile(con => con && !con.isClosed).noRace().next;
 let shutdownFlag: boolean = false;
 
+const reservedFields: {[key: string]: void} = {
+  from: undefined,
+  to: undefined,
+  id: undefined,
+  type: undefined,
+  error: undefined,
+  part: undefined
+};
+
 
 
 async function connect(): Promise<Connection> {
@@ -101,7 +110,7 @@ async function onServiceRequest(msg: Message) {
           id: msg.header.id,
           type: "ServiceResponse"
         };
-        await send(Object.assign({}, res.header, header), res.payload);
+        await send(Object.assign({}, res.header, reservedFields, header), res.payload);
       }
     }
     else throw new Error("No provider for service " + msg.header.service.name);
@@ -255,7 +264,7 @@ export async function request(service: {name: string, capabilities?: string[]}, 
     type: "ServiceRequest",
     service
   };
-  await send(Object.assign({}, req.header, header), req.payload);
+  await send(Object.assign({}, req.header, reservedFields, header), req.payload);
   return promise;
 }
 
@@ -265,7 +274,7 @@ export async function notify(service: {name: string, capabilities?: string[]}, m
     type: "ServiceRequest",
     service
   };
-  await send(Object.assign({}, msg.header, header), msg.payload);
+  await send(Object.assign({}, msg.header, reservedFields, header), msg.payload);
 }
 
 export async function requestTo(endpointId: string, serviceName: string, req: Message, timeout?: number): Promise<Message> {
@@ -278,7 +287,7 @@ export async function requestTo(endpointId: string, serviceName: string, req: Me
     type: "ServiceRequest",
     service: {name: serviceName}
   }
-  await send(Object.assign({}, req.header, header), req.payload);
+  await send(Object.assign({}, req.header, reservedFields, header), req.payload);
   return promise;
 }
 
@@ -289,7 +298,7 @@ export async function notifyTo(endpointId: string, serviceName: string, msg: Mes
     type: "ServiceRequest",
     service: {name: serviceName}
   }
-  await send(Object.assign({}, msg.header, header), msg.payload);
+  await send(Object.assign({}, msg.header, reservedFields, header), msg.payload);
 }
 
 function pendingResponse(id: string, timeout?: number): Promise<Message> {
