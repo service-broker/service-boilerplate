@@ -6,6 +6,7 @@ const WebSocket = require("ws");
 const config_1 = require("../config");
 const iterator_1 = require("./iterator");
 const logger_1 = require("./logger");
+const assert = require("assert");
 const reservedFields = {
     from: undefined,
     to: undefined,
@@ -18,6 +19,7 @@ const reservedFields = {
 class ServiceBroker {
     constructor(url) {
         this.url = url;
+        assert(url, "Missing args");
         this.providers = {};
         this.pending = {};
         this.pendingIdGen = 0;
@@ -204,8 +206,8 @@ class ServiceBroker {
         });
     }
     async advertise(service, handler) {
-        if (this.providers[service.name])
-            throw new Error(`${service.name} provider already exists`);
+        assert(service && service.name && handler, "Missing args");
+        assert(!this.providers[service.name], `${service.name} provider already exists`);
         this.providers[service.name] = {
             service,
             handler,
@@ -217,8 +219,8 @@ class ServiceBroker {
         });
     }
     async unadvertise(serviceName) {
-        if (!this.providers[serviceName])
-            throw new Error(`${serviceName} provider not exists`);
+        assert(serviceName, "Missing args");
+        assert(this.providers[serviceName], `${serviceName} provider not exists`);
         delete this.providers[serviceName];
         await this.send({
             type: "SbAdvertiseRequest",
@@ -226,8 +228,8 @@ class ServiceBroker {
         });
     }
     setServiceHandler(serviceName, handler) {
-        if (this.providers[serviceName])
-            throw new Error(`${serviceName} provider already exists`);
+        assert(serviceName && handler, "Missing args");
+        assert(!this.providers[serviceName], `${serviceName} provider already exists`);
         this.providers[serviceName] = {
             service: { name: serviceName },
             handler,
@@ -235,6 +237,7 @@ class ServiceBroker {
         };
     }
     async request(service, req, timeout) {
+        assert(service && service.name && req, "Missing args");
         if (!req)
             req = {};
         const id = String(++this.pendingIdGen);
@@ -248,6 +251,7 @@ class ServiceBroker {
         return promise;
     }
     async notify(service, msg) {
+        assert(service && service.name && msg, "Missing args");
         if (!msg)
             msg = {};
         const header = {
@@ -257,6 +261,7 @@ class ServiceBroker {
         await this.send(Object.assign({}, msg.header, reservedFields, header), msg.payload);
     }
     async requestTo(endpointId, serviceName, req, timeout) {
+        assert(endpointId && serviceName && req, "Missing args");
         if (!req)
             req = {};
         const id = String(++this.pendingIdGen);
@@ -271,6 +276,7 @@ class ServiceBroker {
         return promise;
     }
     async notifyTo(endpointId, serviceName, msg) {
+        assert(endpointId && serviceName && msg, "Missing args");
         if (!msg)
             msg = {};
         const header = {
@@ -311,18 +317,21 @@ class ServiceBroker {
         });
     }
     async publish(topic, text) {
+        assert(topic && text, "Missing args");
         await this.send({
             type: "ServiceRequest",
             service: { name: "#" + topic }
         }, text);
     }
     async subscribe(topic, handler) {
+        assert(topic && handler, "Missing args");
         await this.advertise({ name: "#" + topic }, (msg) => {
             handler(msg.payload);
             return null;
         });
     }
     async unsubscribe(topic) {
+        assert(topic, "Missing args");
         await this.unadvertise("#" + topic);
     }
     async status() {
@@ -341,5 +350,6 @@ class ServiceBroker {
     }
 }
 exports.ServiceBroker = ServiceBroker;
+assert(config_1.default.serviceBrokerUrl, "Missing config serviceBrokerUrl");
 const defaultServiceBroker = new ServiceBroker(config_1.default.serviceBrokerUrl);
 exports.default = defaultServiceBroker;
