@@ -1,6 +1,6 @@
-import * as sb from "./service-broker"
-import logger from "./logger"
-import config from "../config"
+import config from "../config";
+import logger from "./logger";
+import sb, { Message } from "./service-broker";
 
 let checkInTimer: NodeJS.Timer;
 const shutdownHandlers: Array<() => Promise<void>> = [];
@@ -13,12 +13,12 @@ if (config.siteName && config.serviceName) {
 
 
 
-function onRequest(req: sb.Message): Promise<sb.Message> {
+function onRequest(req: Message): Promise<Message> {
   if (req.header.method == "shutdown") return shutdown(req);
   else throw new Error("Unknown method " + req.header.method);
 }
 
-async function shutdown(req: sb.Message): Promise<sb.Message> {
+async function shutdown(req: Message): Promise<Message> {
   if (req.header.pid != process.pid) throw new Error("pid incorrect");
   for (const handler of shutdownHandlers) await handler();
   clearInterval(checkInTimer);

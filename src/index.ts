@@ -1,9 +1,9 @@
-import { advertise, Message } from "./common/service-broker"
-import { addShutdownHandler } from "./common/service-manager"
-import logger from "./common/logger"
-import config from "./config"
+import logger from "./common/logger";
+import sb, { Message } from "./common/service-broker";
+import { addShutdownHandler } from "./common/service-manager";
+import config from "./config";
 
-advertise(config.service, onRequest);
+sb.advertise(config.service, onRequest);
 addShutdownHandler(onShutdown);
 
 

@@ -1,14 +1,9 @@
-import { request, Message, shutdown } from "./common/service-broker"
+import sb from "./common/service-broker"
+import "./index"
 
-beforeAll(() => {
-  require("./index");
-})
-
-afterAll(() => {
-  return shutdown();
-})
+afterAll(() => sb.shutdown());
 
 
 test("echo service", async () => {
-  await expect(request({name: "echo"}, {payload: "hello, world!"})).resolves.toHaveProperty("payload", "hello, world!");
+  await expect(sb.request({name: "echo"}, {payload: "hello, world!"})).resolves.toHaveProperty("payload", "hello, world!");
 })

@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const logger_1 = require("./common/logger");
 const service_broker_1 = require("./common/service-broker");
 const service_manager_1 = require("./common/service-manager");
-const logger_1 = require("./common/logger");
 const config_1 = require("./config");
-service_broker_1.advertise(config_1.default.service, onRequest);
+service_broker_1.default.advertise(config_1.default.service, onRequest);
 service_manager_1.addShutdownHandler(onShutdown);
 function onRequest(req) {
     return {

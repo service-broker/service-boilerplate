@@ -1,4 +1,4 @@
-import * as sb from "./service-broker"
+import sb from "./service-broker"
 
 afterAll(() => {
   sb.shutdown()
