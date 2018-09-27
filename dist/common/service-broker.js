@@ -12,6 +12,7 @@ const reservedFields = {
     id: undefined,
     type: undefined,
     error: undefined,
+    service: undefined,
     part: undefined
 };
 class ServiceBroker {
@@ -76,6 +77,8 @@ class ServiceBroker {
             this.onServiceResponse(msg);
         else if (msg.header.error)
             this.onServiceResponse(msg);
+        else if (msg.header.service)
+            this.onServiceRequest(msg);
         else
             logger_1.default.error("Don't know what to do with message:", msg.header);
     }

@@ -33,6 +33,7 @@ const reservedFields: {[key: string]: void} = {
   id: undefined,
   type: undefined,
   error: undefined,
+  service: undefined,
   part: undefined
 };
 
@@ -101,6 +102,7 @@ private onMessage(data: string|Buffer) {
   else if (msg.header.type == "ServiceResponse") this.onServiceResponse(msg);
   else if (msg.header.type == "SbStatusResponse") this.onServiceResponse(msg);
   else if (msg.header.error) this.onServiceResponse(msg);
+  else if (msg.header.service) this.onServiceRequest(msg);
   else logger.error("Don't know what to do with message:", msg.header);
 }
 
