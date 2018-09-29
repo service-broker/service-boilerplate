@@ -19,7 +19,7 @@ async function shutdown(req) {
         throw new Error("pid incorrect");
     for (const handler of shutdownHandlers)
         await handler();
-    clearInterval(checkInTimer);
+    clearTimeout(checkInTimer);
     setTimeout(service_broker_1.default.shutdown, 1000);
     return {};
 }
