@@ -6,10 +6,8 @@ const service_broker_1 = require("./service-broker");
 let checkInTimer;
 const shutdownHandlers = [];
 service_broker_1.default.setServiceHandler("service-manager-client", onRequest);
-if (config_1.default.siteName && config_1.default.serviceName) {
+if (config_1.default.siteName && config_1.default.serviceName)
     checkIn();
-    checkInTimer = setInterval(checkIn, 30 * 1000);
-}
 function onRequest(req) {
     if (req.header.method == "shutdown")
         return shutdown(req);
@@ -36,7 +34,8 @@ function checkIn() {
             }
         }
     })
-        .catch(logger_1.default.error);
+        .catch(logger_1.default.error)
+        .then(() => checkInTimer = setTimeout(checkIn, 30 * 1000));
 }
 function addShutdownHandler(handler) {
     shutdownHandlers.push(handler);

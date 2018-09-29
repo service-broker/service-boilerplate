@@ -6,10 +6,7 @@ let checkInTimer: NodeJS.Timer;
 const shutdownHandlers: Array<() => Promise<void>> = [];
 
 sb.setServiceHandler("service-manager-client", onRequest);
-if (config.siteName && config.serviceName) {
-  checkIn();
-  checkInTimer = setInterval(checkIn, 30*1000);
-}
+if (config.siteName && config.serviceName) checkIn();
 
 
 
@@ -38,6 +35,7 @@ function checkIn() {
     }
   })
   .catch(logger.error)
+  .then(() => checkInTimer = setTimeout(checkIn, 30*1000))
 }
 
 
