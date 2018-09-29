@@ -19,7 +19,7 @@ async function shutdown(req: Message): Promise<Message> {
   if (req.header.pid != process.pid) throw new Error("pid incorrect");
   for (const handler of shutdownHandlers) await handler();
   clearTimeout(checkInTimer);
-  setTimeout(sb.shutdown, 1000);
+  setTimeout(() => sb.shutdown(), 1000);
   return {};
 }
 
