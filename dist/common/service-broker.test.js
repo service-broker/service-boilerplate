@@ -25,6 +25,7 @@ test("request/response", async () => {
     });
     expect(await queue.shift()).toEqual({
         header: {
+            ip: expect.any(String),
             from: expect.any(String),
             id: expect.any(String),
             type: "ServiceRequest",
@@ -62,6 +63,7 @@ test("request/response", async () => {
     });
     expect(await queue.shift()).toEqual({
         header: {
+            ip: expect.any(String),
             to: endpointId,
             from: expect.any(String),
             id: expect.any(String),
@@ -87,6 +89,7 @@ test("request/response", async () => {
     });
     expect(await queue.shift()).toEqual({
         header: {
+            ip: expect.any(String),
             to: endpointId,
             from: expect.any(String),
             type: "ServiceRequest",
