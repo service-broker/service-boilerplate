@@ -8,9 +8,6 @@ service_broker_1.default.advertise(config_1.default.service, onRequest);
 service_manager_1.addShutdownHandler(onShutdown);
 function onRequest(req) {
     return {
-        header: {
-            to: req.header.from
-        },
         payload: req.payload
     };
 }

@@ -9,9 +9,6 @@ addShutdownHandler(onShutdown);
 
 function onRequest(req: Message): Message|Promise<Message> {
   return {
-    header: {
-      to: req.header.from
-    },
     payload: req.payload
   }
 }

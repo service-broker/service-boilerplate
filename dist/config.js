@@ -2,6 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv = require("dotenv");
 dotenv.config();
+if (!process.env.SERVICE_BROKER_URL)
+    throw new Error("Missing env SERVICE_BROKER_URL");
 exports.default = {
     // service broker info
     serviceBrokerUrl: process.env.SERVICE_BROKER_URL,
@@ -11,7 +13,7 @@ exports.default = {
     // the service provided by this module
     service: {
         name: "echo",
-        capabilities: null,
+        capabilities: undefined,
         priority: 100
     }
 };

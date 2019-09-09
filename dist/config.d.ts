@@ -1,10 +1,10 @@
 declare const _default: {
     serviceBrokerUrl: string;
-    siteName: string;
-    serviceName: string;
+    siteName: string | undefined;
+    serviceName: string | undefined;
     service: {
         name: string;
-        capabilities: string[];
+        capabilities: undefined;
         priority: number;
     };
 };

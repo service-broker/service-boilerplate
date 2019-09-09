@@ -6,9 +6,9 @@ class Iterator {
         this.next = next;
     }
     noRace() {
-        let pending = Promise.resolve(null);
+        let pending;
         return new Iterator(() => {
-            return pending = pending.then(() => this.next());
+            return pending = Promise.resolve(pending).then(() => this.next());
         });
     }
     keepWhile(cond) {

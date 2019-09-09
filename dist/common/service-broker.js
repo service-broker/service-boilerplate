@@ -23,8 +23,12 @@ class ServiceBroker {
         this.providers = {};
         this.pending = {};
         this.pendingIdGen = 0;
-        this.getConnection = new iterator_1.default(() => this.connect()).throttle(15000).keepWhile(con => con && !con.isClosed).noRace().next;
+        this.conIter = new iterator_1.default(() => this.connect()).throttle(15000).keepWhile(con => con != null && !con.isClosed).noRace();
         this.shutdownFlag = false;
+    }
+    async getConnection() {
+        const con = await this.conIter.next();
+        return con;
     }
     async connect() {
         try {
@@ -238,8 +242,6 @@ class ServiceBroker {
     }
     async request(service, req, timeout) {
         assert(service && service.name && req, "Missing args");
-        if (!req)
-            req = {};
         const id = String(++this.pendingIdGen);
         const promise = this.pendingResponse(id, timeout);
         const header = {
@@ -252,8 +254,6 @@ class ServiceBroker {
     }
     async notify(service, msg) {
         assert(service && service.name && msg, "Missing args");
-        if (!msg)
-            msg = {};
         const header = {
             type: "ServiceRequest",
             service
@@ -262,8 +262,6 @@ class ServiceBroker {
     }
     async requestTo(endpointId, serviceName, req, timeout) {
         assert(endpointId && serviceName && req, "Missing args");
-        if (!req)
-            req = {};
         const id = String(++this.pendingIdGen);
         const promise = this.pendingResponse(id, timeout);
         const header = {
@@ -277,8 +275,6 @@ class ServiceBroker {
     }
     async notifyTo(endpointId, serviceName, msg) {
         assert(endpointId && serviceName && msg, "Missing args");
-        if (!msg)
-            msg = {};
         const header = {
             to: endpointId,
             type: "ServiceRequest",
@@ -325,10 +321,7 @@ class ServiceBroker {
     }
     async subscribe(topic, handler) {
         assert(topic && handler, "Missing args");
-        await this.advertise({ name: "#" + topic }, (msg) => {
-            handler(msg.payload);
-            return null;
-        });
+        await this.advertise({ name: "#" + topic }, (msg) => handler(msg.payload));
     }
     async unsubscribe(topic) {
         assert(topic, "Missing args");
@@ -350,6 +343,5 @@ class ServiceBroker {
     }
 }
 exports.ServiceBroker = ServiceBroker;
-assert(config_1.default.serviceBrokerUrl, "Missing config serviceBrokerUrl");
 const defaultServiceBroker = new ServiceBroker(config_1.default.serviceBrokerUrl);
 exports.default = defaultServiceBroker;

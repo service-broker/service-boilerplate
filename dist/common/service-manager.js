@@ -21,7 +21,6 @@ async function shutdown(req) {
         await handler();
     clearTimeout(checkInTimer);
     setTimeout(() => service_broker_1.default.shutdown(), 1000);
-    return {};
 }
 function checkIn() {
     service_broker_1.default.notify({ name: "service-manager" }, {
