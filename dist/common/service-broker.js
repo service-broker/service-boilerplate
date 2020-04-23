@@ -81,6 +81,8 @@ class ServiceBroker {
             this.onServiceResponse(msg);
         else if (msg.header.type == "SbStatusResponse")
             this.onServiceResponse(msg);
+        else if (msg.header.type == "SbEndpointWaitResponse")
+            this.onServiceResponse(msg);
         else if (msg.header.error)
             this.onServiceResponse(msg);
         else if (msg.header.service)
@@ -329,12 +331,14 @@ class ServiceBroker {
     }
     async status() {
         const id = String(++this.pendingIdGen);
-        const promise = this.pendingResponse(id);
-        await this.send({
-            id,
-            type: "SbStatusRequest"
-        });
-        return promise.then(res => JSON.parse(res.payload));
+        await this.send({ id, type: "SbStatusRequest" });
+        const res = await this.pendingResponse(id);
+        return JSON.parse(res.payload);
+    }
+    async waitEndpoint(endpointId) {
+        const id = String(++this.pendingIdGen);
+        await this.send({ id, type: "SbEndpointWaitRequest", endpointId });
+        await this.pendingResponse(id, Infinity);
     }
     async shutdown() {
         this.shutdownFlag = true;

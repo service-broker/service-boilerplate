@@ -50,6 +50,7 @@ export declare class ServiceBroker {
     subscribe(topic: string, handler: (text: string) => void): Promise<void>;
     unsubscribe(topic: string): Promise<void>;
     status(): Promise<any>;
+    waitEndpoint(endpointId: string): Promise<void>;
     shutdown(): Promise<void>;
 }
 declare const defaultServiceBroker: ServiceBroker;

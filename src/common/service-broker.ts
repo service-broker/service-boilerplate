@@ -112,6 +112,7 @@ private onMessage(data: string|Buffer) {
   if (msg.header.type == "ServiceRequest") this.onServiceRequest(msg);
   else if (msg.header.type == "ServiceResponse") this.onServiceResponse(msg);
   else if (msg.header.type == "SbStatusResponse") this.onServiceResponse(msg);
+  else if (msg.header.type == "SbEndpointWaitResponse") this.onServiceResponse(msg);
   else if (msg.header.error) this.onServiceResponse(msg);
   else if (msg.header.service) this.onServiceRequest(msg);
   else logger.error("Don't know what to do with message:", msg.header);
@@ -375,12 +376,15 @@ async unsubscribe(topic: string) {
 
 async status() {
   const id = String(++this.pendingIdGen);
-  const promise = this.pendingResponse(id);
-  await this.send({
-    id,
-    type: "SbStatusRequest"
-  });
-  return promise.then(res => JSON.parse(res.payload as string));
+  await this.send({id, type: "SbStatusRequest"});
+  const res = await this.pendingResponse(id);
+  return JSON.parse(res.payload as string);
+}
+
+async waitEndpoint(endpointId: string) {
+  const id = String(++this.pendingIdGen);
+  await this.send({id, type: "SbEndpointWaitRequest", endpointId});
+  await this.pendingResponse(id, Infinity);
 }
 
 async shutdown() {
