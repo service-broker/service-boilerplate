@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.addShutdownHandler = void 0;
 const config_1 = require("../config");
 const logger_1 = require("./logger");
 const service_broker_1 = require("./service-broker");

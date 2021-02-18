@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ServiceBroker = void 0;
 const pTimeout = require("p-timeout");
 const stream_1 = require("stream");
 const WebSocket = require("ws");

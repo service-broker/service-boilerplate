@@ -69,7 +69,7 @@ export class ServiceBroker {
 private async connect(): Promise<Connection|null> {
   try {
     const ws = new WebSocket(this.url) as Connection;
-    await new Promise(function(fulfill, reject) {
+    await new Promise<void>(function(fulfill, reject) {
       ws.once("error", reject);
       ws.once("open", () => {
         ws.removeListener("error", reject);
