@@ -25,7 +25,7 @@ class Iterator {
             const elapsed = Date.now() - lastTime;
             const remaining = delay - elapsed;
             if (remaining > 0)
-                await util_1.promisify(setTimeout)(remaining);
+                await (0, util_1.promisify)(setTimeout)(remaining);
             const value = await this.next();
             lastTime = Date.now();
             return value;

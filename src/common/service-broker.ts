@@ -1,4 +1,4 @@
-import * as pTimeout from "p-timeout";
+import pTimeout from "p-timeout";
 import { PassThrough, Readable, Transform } from "stream";
 import * as WebSocket from "ws";
 import config from "../config";
@@ -77,12 +77,12 @@ private async connect(): Promise<Connection|null> {
       });
     });
     logger.info("Service broker connection established");
-    ws.on("message", (data: string|Buffer) => this.onMessage(data));
+    ws.on("message", (data: Buffer, isBinary: boolean) => this.onMessage(isBinary ? data : data.toString()));
     ws.on("error", logger.error);
     ws.once("close", (code, reason) => {
       ws.isClosed = true;
       if (!this.shutdownFlag) {
-        logger.error("Service broker connection lost,", code, reason||"");
+        logger.error("Service broker connection lost,", code, reason ? reason.toString() : "");
         this.getConnection();
       }
     });
@@ -93,7 +93,7 @@ private async connect(): Promise<Connection|null> {
     return ws;
   }
   catch (err) {
-    logger.error("Failed to connect to service broker,", err.message);
+    logger.error("Failed to connect to service broker,", String(err));
     return null;
   }
 }
@@ -106,7 +106,7 @@ private onMessage(data: string|Buffer) {
     else throw new Error("Message is not a string or Buffer");
   }
   catch (err) {
-    logger.error(err.message);
+    logger.error(String(err));
     return;
   }
   if (msg.header.type == "ServiceRequest") this.onServiceRequest(msg);
@@ -139,10 +139,10 @@ private async onServiceRequest(msg: MessageWithHeader) {
         to: msg.header.from,
         id: msg.header.id,
         type: "ServiceResponse",
-        error: err.message
+        error: String(err)
       });
     }
-    else logger.error(err.message, msg.header);
+    else logger.error(String(err), msg.header);
   }
 }
 

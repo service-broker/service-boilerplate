@@ -69,7 +69,6 @@ test("request/response", async () => {
   });
   expect(await queue.shift()).toEqual({
     header: {
-      ip: expect.any(String),
       to: endpointId,
       from: expect.any(String),
       id: expect.any(String),
@@ -95,7 +94,6 @@ test("request/response", async () => {
   });
   expect(await queue.shift()).toEqual({
     header: {
-      ip: expect.any(String),
       to: endpointId,
       from: expect.any(String),
       type: "ServiceRequest",
@@ -112,7 +110,7 @@ test("request/response", async () => {
       payload: "this is request payload"
     });
   }
-  catch (err) {
+  catch (err: any) {
     expect(err.message).toMatch("No provider");
   }
 });
