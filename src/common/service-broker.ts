@@ -77,12 +77,12 @@ private async connect(): Promise<Connection|null> {
       });
     });
     logger.info("Service broker connection established");
-    ws.on("message", (data: Buffer, isBinary: boolean) => this.onMessage(isBinary ? data : data.toString()));
+    ws.on("message", (data: Buffer, isBinary: unknown) => this.onMessage(isBinary == false ? data.toString() : data))
     ws.on("error", logger.error);
     ws.once("close", (code, reason) => {
       ws.isClosed = true;
       if (!this.shutdownFlag) {
-        logger.error("Service broker connection lost,", code, reason ? reason.toString() : "");
+        logger.error("Service broker connection lost,", code, reason ? reason.toString() : "")
         this.getConnection();
       }
     });

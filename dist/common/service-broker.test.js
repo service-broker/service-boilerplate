@@ -1,9 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const service_broker_1 = require("./service-broker");
-afterAll(() => {
-    service_broker_1.default.shutdown();
-});
+const service_manager_1 = require("./service-manager");
+afterAll(service_manager_1.shutdown);
 test("pub/sub", async () => {
     const queue = new Queue();
     service_broker_1.default.subscribe("test-log", msg => queue.push(msg));

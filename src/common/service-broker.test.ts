@@ -1,8 +1,7 @@
 import sb from "./service-broker"
+import { shutdown } from "./service-manager"
 
-afterAll(() => {
-  sb.shutdown()
-});
+afterAll(shutdown)
 
 
 test("pub/sub", async () => {

@@ -42,7 +42,7 @@ class ServiceBroker {
                 });
             });
             logger_1.default.info("Service broker connection established");
-            ws.on("message", (data, isBinary) => this.onMessage(isBinary ? data : data.toString()));
+            ws.on("message", (data, isBinary) => this.onMessage(isBinary == false ? data.toString() : data));
             ws.on("error", logger_1.default.error);
             ws.once("close", (code, reason) => {
                 ws.isClosed = true;
