@@ -18,7 +18,10 @@ function onRequest(req) {
 async function remoteShutdown(req) {
     if (req.header.pid != process.pid)
         throw new Error("pid incorrect");
-    await shutdown();
+    for (const handler of shutdownHandlers)
+        await handler();
+    clearTimeout(checkInTimer);
+    setTimeout(() => service_broker_1.default.shutdown(), 1000);
 }
 async function shutdown() {
     for (const handler of shutdownHandlers)
