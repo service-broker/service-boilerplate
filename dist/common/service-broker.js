@@ -113,7 +113,7 @@ class ServiceBroker {
                     to: msg.header.from,
                     id: msg.header.id,
                     type: "ServiceResponse",
-                    error: String(err)
+                    error: err instanceof Error ? err.message : String(err)
                 });
             }
             else

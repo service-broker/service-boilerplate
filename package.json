@@ -20,13 +20,13 @@
   "homepage": "https://github.com/ken107/service-boilerplate#readme",
   "devDependencies": {
     "@types/jest": "^27.0.2",
-    "@types/node": "^16.10.2",
+    "@types/node": "^16.11.7",
     "@types/ws": "^8.2.0",
-    "typescript": "^4.4.3"
+    "typescript": "^4.4.4"
   },
   "dependencies": {
     "dotenv": "^10.0.0",
     "p-timeout": "^4.1.0",
-    "ws": "^8.2.2"
+    "ws": "^8.2.3"
   }
 }
