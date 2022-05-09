@@ -1,5 +1,6 @@
+import { Message } from "@service-broker/service-broker-client";
 import logger from "./common/logger";
-import sb, { Message } from "./common/service-broker";
+import sb from "./common/service-broker";
 import { addShutdownHandler } from "./common/service-manager";
 import config from "./config";
 
