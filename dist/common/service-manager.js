@@ -18,6 +18,7 @@ function onRequest(req) {
 async function remoteShutdown(req) {
     if (req.header.pid != process.pid)
         throw new Error("pid incorrect");
+    logger_1.default.info("Remote shutdown requested");
     for (const handler of shutdownHandlers)
         await handler();
     clearTimeout(checkInTimer);
