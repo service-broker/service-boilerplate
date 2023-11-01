@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.addShutdownHandler = exports.shutdown = void 0;
+const assert = require("assert");
 const config_1 = require("../config");
 const logger_1 = require("./logger");
 const service_broker_1 = require("./service-broker");
@@ -10,14 +11,13 @@ service_broker_1.default.setServiceHandler("service-manager-client", onRequest);
 if (config_1.default.siteName && config_1.default.serviceName)
     checkIn();
 function onRequest(req) {
+    assert(req.header.secret == config_1.default.deploymentSecret, "Forbidden");
     if (req.header.method == "shutdown")
         return remoteShutdown(req);
     else
         throw new Error("Unknown method " + req.header.method);
 }
 async function remoteShutdown(req) {
-    if (req.header.pid != process.pid)
-        throw new Error("pid incorrect");
     logger_1.default.info("Remote shutdown requested");
     for (const handler of shutdownHandlers)
         await handler();

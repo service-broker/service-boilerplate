@@ -1,9 +1,10 @@
 import { MessageWithHeader } from "@service-broker/service-broker-client";
+import * as assert from "assert";
 import config from "../config";
 import logger from "./logger";
 import sb from "./service-broker";
 
-let checkInTimer: NodeJS.Timer;
+let checkInTimer: NodeJS.Timeout;
 const shutdownHandlers: Array<() => void|Promise<void>> = [];
 
 sb.setServiceHandler("service-manager-client", onRequest);
@@ -12,12 +13,12 @@ if (config.siteName && config.serviceName) checkIn();
 
 
 function onRequest(req: MessageWithHeader) {
+  assert(req.header.secret == config.deploymentSecret, "Forbidden")
   if (req.header.method == "shutdown") return remoteShutdown(req);
   else throw new Error("Unknown method " + req.header.method);
 }
 
 async function remoteShutdown(req: MessageWithHeader) {
-  if (req.header.pid != process.pid) throw new Error("pid incorrect");
   logger.info("Remote shutdown requested")
 
   for (const handler of shutdownHandlers) await handler();

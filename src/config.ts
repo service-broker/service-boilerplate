@@ -12,6 +12,7 @@ export default {
   // service deployment info
   siteName: process.env.SITE_NAME,
   serviceName: process.env.SERVICE_NAME,
+  deploymentSecret: process.env.DEPLOYMENT_SECRET,
 
   // the service provided by this module
   service: {
