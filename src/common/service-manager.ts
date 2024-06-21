@@ -1,5 +1,5 @@
 import { MessageWithHeader } from "@service-broker/service-broker-client";
-import * as assert from "assert";
+import assert from "assert";
 import config from "../config";
 import logger from "./logger";
 import sb from "./service-broker";

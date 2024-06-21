@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
-    "test": "jest dist",
+    "test": "node dist/index.test",
     "start": "node dist/index"
   },
   "repository": {
@@ -20,12 +20,11 @@
   },
   "homepage": "https://github.com/ken107/service-boilerplate#readme",
   "devDependencies": {
-    "@types/jest": "^29.5.7",
-    "@types/node": "^20.8.10",
-    "typescript": "^5.2.2"
+    "@types/node": "^20.14.7",
+    "typescript": "^5.5.2"
   },
   "dependencies": {
-    "@service-broker/service-broker-client": "^1.1.0",
-    "dotenv": "^16.3.1"
+    "@service-broker/service-broker-client": "^2.2.0",
+    "dotenv": "^16.4.5"
   }
 }
