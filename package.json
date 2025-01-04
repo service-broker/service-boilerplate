@@ -20,11 +20,11 @@
   },
   "homepage": "https://github.com/ken107/service-boilerplate#readme",
   "devDependencies": {
-    "@types/node": "^20.14.7",
-    "typescript": "^5.5.2"
+    "@types/node": "^22.10.5",
+    "typescript": "^5.7.2"
   },
   "dependencies": {
-    "@service-broker/service-broker-client": "^2.2.0",
-    "dotenv": "^16.4.5"
+    "@service-broker/service-broker-client": "^2.6.0",
+    "dotenv": "^16.4.7"
   }
 }
