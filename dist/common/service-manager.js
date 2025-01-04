@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.shutdown = shutdown;
 exports.addShutdownHandler = addShutdownHandler;
-const assert_1 = __importDefault(require("assert"));
 const config_1 = __importDefault(require("../config"));
 const logger_1 = __importDefault(require("./logger"));
 const service_broker_1 = __importDefault(require("./service-broker"));
@@ -15,13 +14,14 @@ service_broker_1.default.setServiceHandler("service-manager-client", onRequest);
 if (config_1.default.siteName && config_1.default.serviceName)
     checkIn();
 function onRequest(req) {
-    (0, assert_1.default)(req.header.secret == config_1.default.deploymentSecret, "Forbidden");
     if (req.header.method == "shutdown")
         return remoteShutdown(req);
     else
         throw new Error("Unknown method " + req.header.method);
 }
 async function remoteShutdown(req) {
+    if (req.header.pid != process.pid)
+        throw new Error("pid incorrect");
     logger_1.default.info("Remote shutdown requested");
     for (const handler of shutdownHandlers)
         await handler();
