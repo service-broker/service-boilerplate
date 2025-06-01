@@ -16,7 +16,7 @@ export default {
   // the service provided by this module
   service: {
     name: "echo",
-    capabilities: undefined,
+    capabilities: [],
     priority: 100
   }
 }

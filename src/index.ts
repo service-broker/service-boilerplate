@@ -1,17 +1,15 @@
-import { Message } from "@service-broker/service-broker-client";
+import logger from "./common/logger";
 import sb from "./common/service-broker";
 import { addShutdownHandler } from "./common/service-manager";
 import config from "./config";
 
-sb.advertise(config.service, onRequest);
-addShutdownHandler(onShutdown);
-
-
-function onRequest(req: Message): Message|Promise<Message> {
+sb.advertise(config.service, req => {
+  logger.debug('Echoing', req)
   return {
     payload: req.payload
   }
-}
+})
 
-function onShutdown() {
-}
+addShutdownHandler(() => {
+  logger.debug("Quitting")
+})

@@ -31,7 +31,7 @@ export async function shutdown() {
   clearTimeout(checkInTimer);
 
   await new Promise(f => setTimeout(f, 1000))
-  await sb.shutdown()
+  sb.shutdown()
 }
 
 function checkIn() {

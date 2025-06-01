@@ -33,7 +33,7 @@ async function shutdown() {
         await handler();
     clearTimeout(checkInTimer);
     await new Promise(f => setTimeout(f, 1000));
-    await service_broker_1.default.shutdown();
+    service_broker_1.default.shutdown();
 }
 function checkIn() {
     service_broker_1.default.notify({ name: "service-manager" }, {
